@@ -12,7 +12,7 @@ SELECT PGL.ELocal,(PGL.NumeroPartidos+PJV.NumeroPartidos) AS [NumeroPartidosJuga
 (SELECT P.ELocal,COUNT(*) AS [NumeroPartidos] FROM Partidos AS P
 WHERE P.Finalizado=1 
 GROUP BY P.ELocal) AS PGL
-INNER JOIN
+FULL JOIN
 (SELECT P.EVisitante,COUNT(*) AS [NumeroPartidos] FROM Partidos AS P
 WHERE P.Finalizado=1 
 GROUP BY P.EVisitante) AS PJV ON PGL.ELocal=PJV.EVisitante
@@ -25,7 +25,7 @@ SELECT PJL.ELocal,(PJL.PartidosGanados+PGV.PartidosGanados) AS [PartidosGanados]
 (SELECT P.ELocal,COUNT(*) AS [PartidosGanados] FROM Partidos AS P
 WHERE P.GolesLocal>P.GolesVisitante AND P.Finalizado=1 
 GROUP BY P.ELocal) AS PJL
-INNER JOIN 
+FULL JOIN 
 (SELECT P.EVisitante,COUNT(*) AS [PartidosGanados] FROM Partidos AS P
 WHERE P.GolesVisitante>P.GolesLocal AND P.Finalizado=1 
 GROUP BY P.EVisitante) AS PGV ON PJL.ELocal=PGV.EVisitante
@@ -38,7 +38,7 @@ SELECT  PEL.EVisitante,(PEL.PartidosEmpatados+PEV.PartidosEmpatados) AS [Partido
 (SELECT P.EVisitante,COUNT(*) AS [PartidosEmpatados] FROM Partidos AS P
 WHERE P.GolesVisitante=P.GolesLocal AND P.Finalizado=1 
 GROUP BY P.EVisitante) AS PEL
-INNER JOIN
+FULL JOIN
 (SELECT P.ELocal,COUNT(*) AS [PartidosEmpatados] FROM Partidos AS P
 WHERE P.GolesLocal=P.GolesVisitante AND P.Finalizado=1 
 GROUP BY P.ELocal) AS PEV ON PEL.EVisitante=PEV.ELocal
@@ -63,7 +63,7 @@ GO
 CREATE OR ALTER VIEW [VGF] AS
 SELECT GL.ELocal, (GL.Goles+GV.Goles) AS [Goles] FROM
 (SELECT P.ELocal,SUM(P.GolesLocal) AS [Goles] FROM Partidos AS P
-GROUP BY  P.ELocal) AS GL INNER JOIN 
+GROUP BY  P.ELocal) AS GL FULL JOIN 
 (SELECT P.EVisitante,SUM(P.GolesVisitante) AS [Goles] FROM Partidos AS P
 GROUP BY  P.EVisitante)AS GV ON GL.ELocal=GV.EVisitante
 GO
@@ -73,7 +73,7 @@ GO
 CREATE OR ALTER VIEW [VGC] AS
 SELECT GL.EVisitante, (GL.GolesContra+GV.GolesContra) AS [Goles] FROM
 (SELECT P.EVisitante,SUM(P.GolesLocal) AS [GolesContra] FROM Partidos AS P
-GROUP BY  P.EVisitante) AS GL INNER JOIN 
+GROUP BY  P.EVisitante) AS GL FULL JOIN 
 (SELECT P.ELocal,SUM(P.GolesVisitante) AS [GolesContra] FROM Partidos AS P
 GROUP BY  P.ELocal)AS GV ON GL.EVisitante=GV.ELocal
 GO
@@ -106,7 +106,7 @@ RETURN SELECT PJL.ELocal,(PJL.NumeroPartidos+PJV.NumeroPartidos) AS [NumeroParti
 (SELECT P.ELocal,COUNT(*) AS [NumeroPartidos] FROM Partidos AS P
 WHERE P.Finalizado=1 
 GROUP BY P.ELocal) AS PJL
-INNER JOIN
+FULL JOIN
 (SELECT P.EVisitante,COUNT(*) AS [NumeroPartidos] FROM Partidos AS P
 WHERE P.Finalizado=1 
 GROUP BY P.EVisitante) AS PJV ON PJL.ELocal=PJV.EVisitante
