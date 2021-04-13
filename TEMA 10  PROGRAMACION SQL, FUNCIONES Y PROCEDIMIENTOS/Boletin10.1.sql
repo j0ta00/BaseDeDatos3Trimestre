@@ -52,7 +52,7 @@ CREATE OR ALTER PROCEDURE PCrearTablaProductSales AS
 						SET @IdProducto=(SELECT ProductID FROM Products WHERE ProductID=@Contador)
 						IF NOT	EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME ='ProductSales')
 							BEGIN
-							SELECT*INTO ProductSales FROM FIMostrarCaracteristicasProducto(@IdProducto)
+								SELECT*INTO ProductSales FROM FIMostrarCaracteristicasProducto(@IdProducto)
 							END
 						ELSE
 							BEGIN
