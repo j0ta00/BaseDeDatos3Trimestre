@@ -1,6 +1,6 @@
-/*1 Deseamos incluir un producto en la tabla Products llamado "Cruzcampo lataî pero no estamos seguros si se ha insertado o no.
- El precio son 4,40, el proveedor es el 16, la categorÌa 1 y la cantidad por unidad es "Pack 6 latasî "Discontinuedî toma el valor 0 y el resto de columnas se dejar·n a NULL.
-Escribe un script que compruebe si existe un producto con ese nombre. En caso afirmativo, actualizar· el precio y en caso negativo insertarlo.*/
+/*1 Deseamos incluir un producto en la tabla Products llamado "Cruzcampo lata‚Äù pero no estamos seguros si se ha insertado o no.
+ El precio son 4,40, el proveedor es el 16, la categor√≠a 1 y la cantidad por unidad es "Pack 6 latas‚Äù "Discontinued‚Äù toma el valor 0 y el resto de columnas se dejar√°n a NULL.
+Escribe un script que compruebe si existe un producto con ese nombre. En caso afirmativo, actualizar√° el precio y en caso negativo insertarlo.*/
 GO
 CREATE OR ALTER PROCEDURE PAnhadirProducto 
 	@ProductName nvarchar(40),
@@ -35,22 +35,55 @@ SELECT*FROM Products
 ROLLBACK
 SELECT*FROM Products
 /*2 Comprueba si existe una tabla llamada ProductSales. Esta tabla ha de tener de cada producto el ID, 
-el Nombre, el Precio unitario, el n˙mero total de unidades vendidas 
-y el total de dinero facturado con ese producto. Si no existe, crÈala
+el Nombre, el Precio unitario, el n√∫mero total de unidades vendidas 
+y el total de dinero facturado con ese producto. Si no existe, cr√©ala
 */
-CREATE PROCEDURE PCrearTablaProductSales AS
+GO
+CREATE OR ALTER PROCEDURE PCrearTablaProductSales AS
 	BEGIN
-		IF OBJECT_ID('ProducSales')
+	DECLARE @UltimoId int,@Contador int,@IdProducto int
+	SET @UltimoId=(SELECT MAX(ProductID) FROM Products)
+	SET @Contador=1
+
+		IF NOT	EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME ='ProductSales') 
+			BEGIN
+				WHILE(@Contador<=@UltimoId)
+					BEGIN
+						SET @IdProducto=(SELECT ProductID FROM Products WHERE ProductID=@Contador)
+						IF NOT	EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME ='ProductSales')
+							BEGIN
+							SELECT*INTO ProductSales FROM FIMostrarCaracteristicasProducto(@IdProducto)
+							END
+						ELSE
+							BEGIN
+								INSERT INTO ProductSales SELECT * FROM FIMostrarCaracteristicasProducto(@IdProducto)
+							END
+						SET @Contador+=1
+					END
+			END
 	END
+GO
+GO
+CREATE OR ALTER FUNCTION FIMostrarCaracteristicasProducto
+(@IdProducto as int) RETURNS TABLE AS RETURN
+		SELECT P.ProductID,P.ProductName,P.UnitPrice,SUM(OD.Quantity) AS UnidadesVendidas,SUM((OD.Quantity)*(OD.UnitPrice*(1-OD.Discount))) AS TotalFacturado FROM Products AS P INNER JOIN
+		[Order Details] AS OD ON P.ProductID=OD.ProductID 
+		WHERE P.ProductID=@IdProducto
+		GROUP BY P.ProductID,P.ProductName,P.UnitPrice
+GO
+BEGIN TRANSACTION
+EXECUTE dbo.PCrearTablaProductSales
+SELECT*FROM ProductSales
+COMMIT
 /*3 Comprueba si existe una tabla llamada ShipShip. Esta tabla ha de tener de cada Transportista el ID, 
-el Nombre de la compaÒÌa, el n˙mero total de envÌos que ha efectuado y el n˙mero de paÌses diferentes a 
-los que ha llevado cosas. Si no existe, crÈala
+el Nombre de la compa√±√≠a, el n√∫mero total de env√≠os que ha efectuado y el n√∫mero de pa√≠ses diferentes a 
+los que ha llevado cosas. Si no existe, cr√©ala
 */
 /*4 Comprueba si existe una tabla llamada EmployeeSales. 
-Esta tabla ha de tener de cada empleado su ID, el Nombre completo, el n˙mero de ventas totales que ha 
-realizado, el n˙mero de clientes diferentes a los que ha vendido y el total de dinero facturado. Si no existe, crÈala
+Esta tabla ha de tener de cada empleado su ID, el Nombre completo, el n√∫mero de ventas totales que ha 
+realizado, el n√∫mero de clientes diferentes a los que ha vendido y el total de dinero facturado. Si no existe, cr√©ala
 */
-/*5 Entre los aÒos 96 y 97 hay productos que han aumentado sus ventas y otros que las han disminuido. Queremos cambiar el precio unitario seg˙n la siguiente tabla:
+/*5 Entre los a√±os 96 y 97 hay productos que han aumentado sus ventas y otros que las han disminuido. Queremos cambiar el precio unitario seg√∫n la siguiente tabla:
 */
 /* Incremento de ventas
 
@@ -62,7 +95,7 @@ Negativo
 
 Entre 0 y 10%
 
-No varÌa
+No var√≠a
 
 Entre 10% y 50%
 
@@ -70,5 +103,5 @@ Entre 10% y 50%
 
 Mayor del 50%
 
-10% con un m·ximo de 2,25
+10% con un m√°ximo de 2,25
 */
