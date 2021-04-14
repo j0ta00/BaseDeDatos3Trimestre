@@ -105,3 +105,24 @@ Mayor del 50%
 
 10% con un máximo de 2,25
 */
+GO
+CREATE OR ALTER FUNCTION FCantidadesVendidas
+(@Anhio int) RETURNS TABLE AS RETURN
+		SELECT OD.ProductID,YEAR(O.OrderDate) AS Año,SUM(od.Quantity) AS CantidadVendida FROM [Order Details] AS OD
+		INNER JOIN Orders AS O ON OD.OrderID=O.OrderID
+		WHERE YEAR(O.OrderDate)=@Anhio
+		GROUP BY OD.ProductID,YEAR(O.OrderDate)
+GO
+
+
+CREATE OR ALTER PROCEDURE PAumentarPrecio
+AS
+BEGIN
+	DECLARE @Anno int,@VCB int
+	SET @Anno=(SELECT MAX(OrderDate) FROM Orders)
+	SET @VCB=(SELECT MIN(OrderDate) FROM Orders)
+	WHILE(@VCB<=@Anno)
+		BEGIN
+			SELECT @VCB = MIN(OrderDate) FROM Orders WHERE YEAR(OrderDate) > @VCB
+		END
+END
