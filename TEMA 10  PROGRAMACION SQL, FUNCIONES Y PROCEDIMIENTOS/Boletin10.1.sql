@@ -106,7 +106,7 @@ Mayor del 50%
 10% con un máximo de 2,25
 */
 GO
-CREATE OR ALTER FUNCTION FCantidadesVendidas
+CREATE OR ALTER FUNCTION FICantidadesVendidas
 (@Anhio int) RETURNS TABLE AS RETURN
 		SELECT OD.ProductID,YEAR(O.OrderDate) AS Año,SUM(od.Quantity) AS CantidadVendida FROM [Order Details] AS OD
 		INNER JOIN Orders AS O ON OD.OrderID=O.OrderID
@@ -118,11 +118,11 @@ GO
 CREATE OR ALTER PROCEDURE PAumentarPrecio
 AS
 BEGIN
-	DECLARE @Anno int,@VCB int
-	SET @Anno=(SELECT MAX(OrderDate) FROM Orders)
-	SET @VCB=(SELECT MIN(OrderDate) FROM Orders)
-	WHILE(@VCB<=@Anno)
+	DECLARE @Anno int
 		BEGIN
-			SELECT @VCB = MIN(OrderDate) FROM Orders WHERE YEAR(OrderDate) > @VCB
+			UPDATE Products SET ProductID=(SELECT AnhioOriginal.ProductID FROM FICantidadesVendidas(@Anno) AS AnhioOriginal INNER JOIN FICantidadesVendidas(@Anno-1) AS AnhioAnterior ON AnhioOriginal.ProductId=AnhioAnterior.ProductId WHERE AnhioOriginal.CantidadVendida<AnhioAnterior.CantidadVendida),UnitPrice*=0.90
+			UPDATE Products SET ProductID=(SELECT AnhioOriginal.ProductID FROM FICantidadesVendidas(@Anno) AS AnhioOriginal INNER JOIN FICantidadesVendidas(@Anno-1) AS AnhioAnterior ON AnhioOriginal.ProductId=AnhioAnterior.ProductId WHERE AnhioOriginal.CantidadVendida BETWEEN (AnhioAnterior.CantidadVendida*0.1+AnhioAnterior.CantidadVendida) AND (AnhioAnterior.CantidadVendida*0.4+AnhioAnterior.CantidadVendida)),UnitPrice*=1.05
+			UPDATE Products SET ProductID=(SELECT AnhioOriginal.ProductID FROM FICantidadesVendidas(@Anno) AS AnhioOriginal INNER JOIN FICantidadesVendidas(@Anno-1) AS AnhioAnterior ON AnhioOriginal.ProductId=AnhioAnterior.ProductId WHERE AnhioOriginal.CantidadVendida>(AnhioAnterior.CantidadVendida*0.5+AnhioAnterior.CantidadVendida) AND AnhioOriginal.ProductID=(SELECT ProductID FROM Products WHERE UnitPrice*0.1<2.25)),UnitPrice*=1.10
 		END
 END
+SELECT*FROM Products
