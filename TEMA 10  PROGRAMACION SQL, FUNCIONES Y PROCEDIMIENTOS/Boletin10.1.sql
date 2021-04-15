@@ -114,15 +114,18 @@ CREATE OR ALTER FUNCTION FICantidadesVendidas
 		GROUP BY OD.ProductID,YEAR(O.OrderDate)
 GO
 
-
+GO
 CREATE OR ALTER PROCEDURE PAumentarPrecio
 AS
 BEGIN
 	DECLARE @Anno int
-		BEGIN
-			UPDATE Products SET ProductID=(SELECT AnhioOriginal.ProductID FROM FICantidadesVendidas(@Anno) AS AnhioOriginal INNER JOIN FICantidadesVendidas(@Anno-1) AS AnhioAnterior ON AnhioOriginal.ProductId=AnhioAnterior.ProductId WHERE AnhioOriginal.CantidadVendida<AnhioAnterior.CantidadVendida),UnitPrice*=0.90
-			UPDATE Products SET ProductID=(SELECT AnhioOriginal.ProductID FROM FICantidadesVendidas(@Anno) AS AnhioOriginal INNER JOIN FICantidadesVendidas(@Anno-1) AS AnhioAnterior ON AnhioOriginal.ProductId=AnhioAnterior.ProductId WHERE AnhioOriginal.CantidadVendida BETWEEN (AnhioAnterior.CantidadVendida*0.1+AnhioAnterior.CantidadVendida) AND (AnhioAnterior.CantidadVendida*0.4+AnhioAnterior.CantidadVendida)),UnitPrice*=1.05
-			UPDATE Products SET ProductID=(SELECT AnhioOriginal.ProductID FROM FICantidadesVendidas(@Anno) AS AnhioOriginal INNER JOIN FICantidadesVendidas(@Anno-1) AS AnhioAnterior ON AnhioOriginal.ProductId=AnhioAnterior.ProductId WHERE AnhioOriginal.CantidadVendida>(AnhioAnterior.CantidadVendida*0.5+AnhioAnterior.CantidadVendida) AND AnhioOriginal.ProductID=(SELECT ProductID FROM Products WHERE UnitPrice*0.1<2.25)),UnitPrice*=1.10
-		END
+	SET @Anno=1997
+	 UPDATE Products SET UnitPrice=(CASE WHEN Anhio96.CantidadVendida>Anhio97.CantidadVendida THEN UnitPrice*0.90
+	 WHEN Anhio97.CantidadVendida BETWEEN Anhio96.CantidadVendida*1.1 AND Anhio96.CantidadVendida*1.4 THEN UnitPrice*1.05
+	 WHEN Anhio97.CantidadVendida>=Anhio96.CantidadVendida*1.5 AND UnitPrice*0.10<2.25 THEN  UnitPrice*1.10
+	 END)
+	 FROM FICantidadesVendidas(1996) AS Anhio96 INNER JOIN FICantidadesVendidas(1997) AS Anhio97 ON Anhio96.ProductID=Anhio97.ProductID
+	 WHERE Products.ProductID=Anhio96.ProductID		
 END
+GO
 SELECT*FROM Products
