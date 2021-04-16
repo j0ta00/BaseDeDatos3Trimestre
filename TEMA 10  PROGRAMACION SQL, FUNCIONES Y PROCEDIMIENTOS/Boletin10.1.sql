@@ -121,8 +121,8 @@ BEGIN
 	DECLARE @Anno int
 	SET @Anno=1997
 	 UPDATE Products SET UnitPrice=(CASE WHEN Anhio96.CantidadVendida>Anhio97.CantidadVendida THEN UnitPrice*0.90
-	 WHEN Anhio97.CantidadVendida BETWEEN Anhio96.CantidadVendida*1.1 AND Anhio96.CantidadVendida*1.4 THEN UnitPrice*1.05
-	 WHEN Anhio97.CantidadVendida>=Anhio96.CantidadVendida*1.5 AND UnitPrice*0.10<2.25 THEN  UnitPrice*1.10
+	 WHEN Anhio97.CantidadVendida BETWEEN Anhio96.CantidadVendida*1.1 AND Anhio96.CantidadVendida*1.5 THEN UnitPrice*1.05
+	 WHEN Anhio97.CantidadVendida>Anhio96.CantidadVendida*1.5 AND UnitPrice*0.10<2.25 THEN  UnitPrice*1.10
 	 END)
 	 FROM FICantidadesVendidas(1996) AS Anhio96 INNER JOIN FICantidadesVendidas(1997) AS Anhio97 ON Anhio96.ProductID=Anhio97.ProductID
 	 WHERE Products.ProductID=Anhio96.ProductID		
