@@ -1,18 +1,18 @@
 /*Ejercicio 0
-La convocatoria de elecciones en Madrid ha causado tal conmociÛn entre los directivos de LeoMetro que han decidido conceder una amnistÌa a todos los pasajeros que tengan un saldo negativo en sus tarjetas.
-Crea un procedimiento que racargue la cantidad necesaria para dejar a 0 el saldo de las tarjetas que tengan un saldo negativo y hayan sido recargadas al menos una vez en los ˙ltimos dos meses.
-Ejercicio elaborado en colaboraciÛn con Sefran.
+La convocatoria de elecciones en Madrid ha causado tal conmoci√≥n entre los directivos de LeoMetro que han decidido conceder una amnist√≠a a todos los pasajeros que tengan un saldo negativo en sus tarjetas.
+Crea un procedimiento que racargue la cantidad necesaria para dejar a 0 el saldo de las tarjetas que tengan un saldo negativo y hayan sido recargadas al menos una vez en los √∫ltimos dos meses.
+Ejercicio elaborado en colaboraci√≥n con Sefran.
 */
 /*Ejercicio 1
-Crea un procedimiento RecargarTarjeta que reciba como par·metros el ID de una tarjeta y un importe y actualice el saldo de la tarjeta sum·ndole dicho importe, adem·s de grabar la correspondiente recarga
+Crea un procedimiento RecargarTarjeta que reciba como par√°metros el ID de una tarjeta y un importe y actualice el saldo de la tarjeta sum√°ndole dicho importe, adem√°s de grabar la correspondiente recarga
 */
 /*Ejercicio 2
-Crea un procedimiento almacenado llamado PasajeroSale que reciba como par·metros el ID de una tarjeta, el ID de una estaciÛn y una fecha/hora (opcional). 
-El procedimiento se llamar· cuando un pasajero pasa su tarjeta por uno de los tornos de salida del metro. 
-Su misiÛn es grabar la salida en la tabla LM_Viajes. Para ello deber· localizar la entrada que corresponda, que ser· la ˙ltima entrada correspondiente al mismo pasajero y har· un update de las columnas que correspondan. 
-Si no existe la entrada, grabaremos una nueva fila en LM_Viajes dejando a NULL la estaciÛn y el momento de entrada.
-Si se omite el par·metro de la fecha/hora, se tomar· la actual.
-TambiÈn debe actualizarse el saldo de la tarjeta, descontando el importe del viaje grabado.
+Crea un procedimiento almacenado llamado PasajeroSale que reciba como par√°metros el ID de una tarjeta, el ID de una estaci√≥n y una fecha/hora (opcional). 
+El procedimiento se llamar√° cuando un pasajero pasa su tarjeta por uno de los tornos de salida del metro. 
+Su misi√≥n es grabar la salida en la tabla LM_Viajes. Para ello deber√° localizar la entrada que corresponda, que ser√° la √∫ltima entrada correspondiente al mismo pasajero y har√° un update de las columnas que correspondan. 
+Si no existe la entrada, grabaremos una nueva fila en LM_Viajes dejando a NULL la estaci√≥n y el momento de entrada.
+Si se omite el par√°metro de la fecha/hora, se tomar√° la actual.
+Tambi√©n debe actualizarse el saldo de la tarjeta, descontando el importe del viaje grabado.
 */
 
 
@@ -20,17 +20,42 @@ TambiÈn debe actualizarse el saldo de la tarjeta, descontando el importe del via
 
 
 /*Ejercicio 3
-A veces, un pasajero reclama que le hemos cobrado un viaje de forma indebida. Escribe un procedimiento que reciba como par·metro el ID de un pasajero y la fecha y hora de la entrada en el metro y anule ese viaje, actualizando adem·s el saldo de la tarjeta que utilizÛ.
+A veces, un pasajero reclama que le hemos cobrado un viaje de forma indebida. Escribe un procedimiento que reciba como par√°metro el ID de un pasajero y la fecha y hora de la entrada en el metro y anule ese viaje, actualizando adem√°s el saldo de la tarjeta que utiliz√≥.
 */
+
+EXEC sys.sp_addmessage @msgnum=51000, @severity=16, @msgtext='Invalid parameters', @lang='us_english',@replace='replace'
+GO
+CREATE OR ALTER PROCEDURE PAnularViaje(@IdPasajero smallint,@Entrada smalldatetime) AS
+BEGIN 
+	DECLARE @Importe money,@IdTarjeta smallint
+	IF EXISTS(SELECT ID FROM LM_Pasajeros WHERE ID=@IdPasajero)
+		BEGIN
+			SELECT @Importe=Importe_Viaje,@IdTarjeta=IDTarjeta FROM LM_Viajes LM_Viajes WHERE IDTarjeta=(SELECT T.ID FROM LM_Pasajeros AS P INNER JOIN LM_Tarjetas AS T ON P.ID=T.IDPasajero WHERE P.ID=@IdPasajero) AND MomentoEntrada=@Entrada
+			DELETE FROM LM_Viajes WHERE IDTarjeta=@IdTarjeta AND MomentoEntrada=@Entrada
+			UPDATE LM_Tarjetas SET Saldo-=@Importe WHERE ID=@IdTarjeta
+		END
+	ELSE
+		THROW 51000,'Par√°metros inv√°lidos, introduce unos adecuados',1
+END
+GO
+BEGIN TRANSACTION
+
+BEGIN TRY
+	EXECUTE PAnularViaje @IdPasajero=2000,@Entrada='2021-04-30 10:00:00'
+END TRY
+BEGIN CATCH
+	SELECT ERROR_NUMBER() AS [N√∫mero del error], ERROR_SEVERITY() AS [Gravedad del error],ERROR_LINE() AS [Linea del error],ERROR_STATE() AS [Estado del error],ERROR_PROCEDURE() AS [Nombre del procedimiento donde se produjo]
+END CATCH
+
 /*Ejercicio 4
-La empresa de Metro realiza una campaÒa de promociÛn para pasajeros fieles.
+La empresa de Metro realiza una campa√±a de promoci√≥n para pasajeros fieles.
 
 Crea un procedimiento almacenado que recargue saldo a los pasajeros que cumplan determinados requisitos.
-Se recargar·n N1 euros a los pasajeros que hayan consumido m·s de 30 euros en el mes anterior (considerar mes completo, del dÌa 1 al fin) y N2 euros a los que hayan utilizado m·s de 10 veces alguna estaciÛn de las zonas 3 o 4.
+Se recargar√°n N1 euros a los pasajeros que hayan consumido m√°s de 30 euros en el mes anterior (considerar mes completo, del d√≠a 1 al fin) y N2 euros a los que hayan utilizado m√°s de 10 veces alguna estaci√≥n de las zonas 3 o 4.
 
-Los valores de N1 y N2 se pasar·n como par·metros. Si se omiten, se tomar· el valor 5.
+Los valores de N1 y N2 se pasar√°n como par√°metros. Si se omiten, se tomar√° el valor 5.
 
-Ambos premios son excluyentes. Si alg˙n pasajero cumple ambas condiciones se le aplicar· la que suponga mayor bonificaciÛn de las dos.
+Ambos premios son excluyentes. Si alg√∫n pasajero cumple ambas condiciones se le aplicar√° la que suponga mayor bonificaci√≥n de las dos.
 */
 
 select*from LM_Viajes
@@ -56,9 +81,9 @@ SELECT Zona_Estacion FROM LM_Estaciones
 
 
 /*Ejercicio 5
-Crea una funciÛn que nos devuelva verdadero si es posible que un pasajero haya subido a un tren en un determinado viaje. Se pasar· como par·metro el cÛdigo del viaje y la matrÌcula del tren.
+Crea una funci√≥n que nos devuelva verdadero si es posible que un pasajero haya subido a un tren en un determinado viaje. Se pasar√° como par√°metro el c√≥digo del viaje y la matr√≠cula del tren.
 
-Primera aproximaciÛn: Se considera que un pasajero ha podido subir a un tren si ese tren se encontraba en serviciodurante el tiempo que el pasajero ha permanecido dentro del sistema de metro
+Primera aproximaci√≥n: Se considera que un pasajero ha podido subir a un tren si ese tren se encontraba en serviciodurante el tiempo que el pasajero ha permanecido dentro del sistema de metro
 
 */
 
@@ -66,7 +91,7 @@ Primera aproximaciÛn: Se considera que un pasajero ha podido subir a un tren si 
 
 
 /*Ejercicio 6
-Crea un procedimiento SustituirTarjeta que Cree una nueva tarjeta y la asigne al mismo usuario y con el mismo saldo que otra tarjeta existente. El cÛdigo de la tarjeta a sustituir se pasar· como par·metro.
+Crea un procedimiento SustituirTarjeta que Cree una nueva tarjeta y la asigne al mismo usuario y con el mismo saldo que otra tarjeta existente. El c√≥digo de la tarjeta a sustituir se pasar√° como par√°metro.
 
 */
 
@@ -79,5 +104,5 @@ Las estaciones de la zona 3 tienen ciertas deficiencias, lo que nos ha obligado 
 
 A consecuencia de estas modificaciones, la capacidad de los trenes se ha visto reducida en 6 plazas para los trenes de tipo 1 y 4 plazas para los trenes de tipo 2.
 
-Realiza un procedimiento al que se pase un intervalo de tiempo y modifique la capacidad de todos los trenes que hayan circulado m·s de una vez por alguna estaciÛn de la zona 3 en ese intervalo.
+Realiza un procedimiento al que se pase un intervalo de tiempo y modifique la capacidad de todos los trenes que hayan circulado m√°s de una vez por alguna estaci√≥n de la zona 3 en ese intervalo.
 */
