@@ -86,7 +86,21 @@ Crea una función que nos devuelva verdadero si es posible que un pasajero haya 
 Primera aproximación: Se considera que un pasajero ha podido subir a un tren si ese tren se encontraba en serviciodurante el tiempo que el pasajero ha permanecido dentro del sistema de metro
 
 */
+GO
+CREATE OR ALTER FUNCTION FPosiblePasajero 
+(@MatriculaTren char(7),@CodigoViaje int)RETURNS bit AS
+BEGIN
+	DECLARE @Posible bit
+	SET @Posible=0
+		IF EXISTS(SELECT Momento FROM LM_Recorridos AS R WHERE Tren=(SELECT ID FROM LM_Trenes WHERE Matricula='3290GPT') AND Momento BETWEEN (SELECT MomentoEntrada FROM LM_Viajes WHERE ID=28) AND (SELECT MomentoSalida FROM LM_Viajes WHERE ID=28))
+			BEGIN
+				SET @Posible=1
+			END
+	RETURN @Posible
+END
+GO
 
+PRINT dbo.FPosiblePasajero('3290GPT',28) 
 
 
 
