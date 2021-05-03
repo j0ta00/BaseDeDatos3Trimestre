@@ -14,7 +14,28 @@ Si no existe la entrada, grabaremos una nueva fila en LM_Viajes dejando a NULL l
 Si se omite el parámetro de la fecha/hora, se tomará la actual.
 También debe actualizarse el saldo de la tarjeta, descontando el importe del viaje grabado.
 */
-
+GO
+CREATE OR ALTER PROCEDURE [PPasajeroSale](@IdTarjeta int,@IdEstacion smallint,@fechaYHora smalldatetime=NULL) AS 
+BEGIN
+	DECLARE @Importe money
+	SELECT @Importe=ZP.Precio_Zona FROM LM_Estaciones AS E INNER JOIN LM_Zona_Precios AS ZP ON E.Zona_Estacion=ZP.Zona
+	WHERE E.ID=@IdEstacion
+	IF(@fechaYHora IS NULL)
+	BEGIN
+		SET @fechaYHora=CAST(GETDATE() AS smalldatetime)
+	END
+	IF EXISTS(SELECT IDEstacionSalida FROM LM_Viajes AS V WHERE V.IDTarjeta=3 AND IDEstacionSalida IS NULL)
+		BEGIN
+			UPDATE LM_Viajes SET IDEstacionSalida=@IdEstacion, MomentoSalida=@fechaYHora,Importe_Viaje=@Importe
+			WHERE IDTarjeta=@IdTarjeta AND IDEstacionSalida IS NULL
+		END
+	ELSE
+		BEGIN
+			INSERT INTO LM_Viajes VALUES(@IdTarjeta,NULL,@IdEstacion,NULL,@fechaYHora,@Importe)
+		END
+	UPDATE LM_Tarjetas SET Saldo-=@Importe
+END
+GO
 
 
 
