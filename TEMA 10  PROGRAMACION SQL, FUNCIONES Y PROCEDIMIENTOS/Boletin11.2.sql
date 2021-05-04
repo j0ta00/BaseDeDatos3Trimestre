@@ -142,3 +142,22 @@ A consecuencia de estas modificaciones, la capacidad de los trenes se ha visto r
 
 Realiza un procedimiento al que se pase un intervalo de tiempo y modifique la capacidad de todos los trenes que hayan circulado más de una vez por alguna estación de la zona 3 en ese intervalo.
 */
+GO
+CREATE OR ALTER PROCEDURE PModificarCapacidad(@Entrada smalldatetime,@Salida smalldatetime) AS
+BEGIN
+	UPDATE LM_Trenes SET Capacidad-=CASE Tipo WHEN
+	1 THEN 6
+	WHEN 2 THEN 4
+	END
+	WHERE ID IN(
+	SELECT Tren FROM LM_Recorridos AS R
+	INNER JOIN LM_Estaciones AS E ON R.estacion=E.ID
+	WHERE E.Zona_Estacion=3 AND Momento BETWEEN @Entrada AND @Salida
+	GROUP BY Tren
+	HAVING COUNT(*)>=2)
+END
+GO
+BEGIN TRANSACTION
+EXECUTE PModificarCapacidad @Entrada='2017-02-24 14:32:16.000',@Salida='2017-02-28 14:32:16.000'
+SELECT*FROM LM_Trenes
+SELECT*FROM LM_Recorridos
