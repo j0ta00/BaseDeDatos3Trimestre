@@ -114,7 +114,7 @@ CREATE OR ALTER FUNCTION FPosiblePasajero
 BEGIN
 	DECLARE @Posible bit
 	SET @Posible=0
-		IF EXISTS(SELECT Momento FROM LM_Recorridos AS R INNER JOIN 
+		IF EXISTS(SELECT * FROM LM_Recorridos AS R INNER JOIN 
 		LM_Trenes AS T ON R.Tren=ID 
 		WHERE T.Matricula=@MatriculaTren AND Momento BETWEEN (SELECT MomentoEntrada FROM LM_Viajes WHERE ID=@CodigoViaje) AND (SELECT MomentoSalida FROM LM_Viajes WHERE ID=@CodigoViaje))
 			BEGIN
