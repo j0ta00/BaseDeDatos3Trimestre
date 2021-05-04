@@ -113,7 +113,7 @@ CREATE OR ALTER FUNCTION FPosiblePasajero
 BEGIN
 	DECLARE @Posible bit
 	SET @Posible=0
-		IF EXISTS(SELECT Momento FROM LM_Recorridos AS R WHERE Tren=(SELECT ID FROM LM_Trenes WHERE Matricula='3290GPT') AND Momento BETWEEN (SELECT MomentoEntrada FROM LM_Viajes WHERE ID=28) AND (SELECT MomentoSalida FROM LM_Viajes WHERE ID=28))
+		IF EXISTS(SELECT Momento FROM LM_Recorridos AS R WHERE Tren=(SELECT ID FROM LM_Trenes WHERE Matricula=@MatriculaTren) AND Momento BETWEEN (SELECT MomentoEntrada FROM LM_Viajes WHERE ID=@CodigoViaje) AND (SELECT MomentoSalida FROM LM_Viajes WHERE ID=@CodigoViaje))
 			BEGIN
 				SET @Posible=1
 			END
