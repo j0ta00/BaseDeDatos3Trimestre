@@ -154,7 +154,7 @@ BEGIN
 	INNER JOIN LM_Estaciones AS E ON R.estacion=E.ID
 	WHERE E.Zona_Estacion=3 AND Momento BETWEEN @Entrada AND @Salida
 	GROUP BY Tren
-	HAVING COUNT(*)>=2)
+	HAVING COUNT(*)>1)
 END
 GO
 BEGIN TRANSACTION
