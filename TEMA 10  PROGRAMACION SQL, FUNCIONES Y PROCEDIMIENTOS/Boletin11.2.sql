@@ -145,11 +145,11 @@ Realiza un procedimiento al que se pase un intervalo de tiempo y modifique la ca
 GO
 CREATE OR ALTER PROCEDURE PModificarCapacidad(@Entrada smalldatetime,@Salida smalldatetime) AS
 BEGIN
-	UPDATE LM_Trenes SET Capacidad-=CASE Tipo WHEN
+	UPDATE LM_Trenes SET Capacidad-=CASE Tipo WHEN --Modificamos la capacidad en funcion del tipo
 	1 THEN 6
 	WHEN 2 THEN 4
 	END
-	WHERE ID IN(
+	WHERE ID IN(--hacemos una subconsulta para sacar que trenes han pasado por una estacion de zona 3 mas de una vez tal como dice el enunciado
 	SELECT Tren FROM LM_Recorridos AS R
 	INNER JOIN LM_Estaciones AS E ON R.estacion=E.ID
 	WHERE E.Zona_Estacion=3 AND Momento BETWEEN @Entrada AND @Salida
