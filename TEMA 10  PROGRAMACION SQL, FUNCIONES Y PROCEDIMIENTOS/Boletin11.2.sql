@@ -144,6 +144,13 @@ Realiza un procedimiento al que se pase un intervalo de tiempo y modifique la ca
 */
 GO
 CREATE OR ALTER PROCEDURE PModificarCapacidad(@Entrada smalldatetime,@Salida smalldatetime) AS
+/*
+CABECERA:PROCEDURE PModificarCapacidad(@Entrada smalldatetime,@Salida smalldatetime)
+PRECONDICIÓN:La entrada y salida deben existir en la base de datos
+POSTCONDICIÓN:Se trata de un procedimiento que modifica la capacidad de los trenes
+ENTRADA:@Entrada smalldatetime,@Salida smalldatetime
+SALIDA:Ninguna, se modifica el estado de la base de datos
+*/
 BEGIN
 	UPDATE LM_Trenes SET Capacidad-=CASE Tipo WHEN --Modificamos la capacidad en funcion del tipo
 	1 THEN 6
