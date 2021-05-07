@@ -41,6 +41,45 @@ DATEADD(DAY,RAND()*35600,DATEFROMPARTS(1921,5,7))
 --SE TIENE QUE HACER EN UN BUCLE EL UPDATE DEBIDO A QUE AUNQUE POR CADA EJECUCIÓN DEL ROUND SALE UNA FECHA DIFERENETE POR EL FUNCIONAMIENTO DEL UPDATE EL RANDOM SOLO
 --SE EJECUTA UNA VEZ Y POR LO TANTO PONDRÍA TOOA LA COLUMNA CON LA MISMA FECHA
 
+DECLARE @VCB int
+
+WHILE @VCB<4
+BEGIN
+	SELECT   @VCB=MAX(NViajesDineroYCategoria.DineroGastado) FROM
+	(SELECT P.Nombre,P.ID,COUNT(*) AS NumeroViajes, SUM(V.Importe_Viaje) AS DineroGastado,CASE WHEN 
+
+	DATEDIFF(DAY,P.FechaNacimiento,CAST(GETDATE() AS DATE))/365>64 THEN 'MayoresDe65'
+	WHEN 
+
+	DATEDIFF(DAY,P.FechaNacimiento,CAST(GETDATE() AS DATE))/365<25 THEN 'MenoresDe25'
+	ELSE 'Resto'
+	END AS Categoria
+	FROM LM_Pasajeros AS P INNER JOIN
+	LM_Tarjetas AS T ON P.ID=T.IDPasajero INNER JOIN LM_Viajes AS V ON
+	T.ID=V.IDTarjeta
+	WHERE V.IDEstacionSalida IS NOT NULL
+	GROUP BY P.Nombre,P.ID,P.FechaNacimiento) AS NViajesDineroYCategoria
+	WHERE NViajesDineroYCategoria.DineroGastado<@VCB
+	GROUP BY NViajesDineroYCategoria.Categoria
+
+END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*Ejercicio 8
 La empresa del metro está haciendo un estudio sobre los precios de los viajes. En concreto, quiere igualar la cantidad de dinero que ingresa el metro en cada
